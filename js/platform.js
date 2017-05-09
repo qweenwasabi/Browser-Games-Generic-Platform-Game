@@ -1,0 +1,146 @@
+var simpleLevlPlan = [
+  "                      ",
+  "                      ",
+  "  x            = x    ",
+  "  x        o o   x    ",
+  "  x @     xxxxx  x    ",
+  "  xxxx           x    ",
+  "     x           x    ",
+  "     x!!!!!!!!!!!x    ",
+  "     xxxxxxxxxxxxx    ",
+];
+
+// Levels
+
+function level(plan) {
+  this.width = plan[0].length;
+  this.height = plan.length;
+  this.grid = [];
+  this.actors = [];
+
+  for (var y = 0; y < this.height; y++) {
+    var line = plan[y],
+      gridline = [];
+    for (var x = 0; x < this.width; x++) {
+      var ch = line[x],
+        fieldType = null;
+      var Actor = actorChars[ch];
+      if (Actor)
+        this.actors.push(new Actor(new Vector(x, y), ch));
+      else if (ch == 'x')
+        fieldType = 'wall';
+      else if (ch == '!')
+        fieldType = 'lava';
+      grideLine.push(fieldType);
+    }
+    this.grid.push(grideLine);
+  }
+
+  this.player = this.actors.filter(function(actor) {
+    return actor.type == 'player';
+  })[0];
+  this.status = this.finishDelay = null;
+}
+
+//Level status and tracker
+
+Level.prototype.isFinished = function() {
+  return this.status != null && this.finishDelay < 0;
+}
+
+//character/actors
+
+function vector(x, y) {
+  this.x = x; this.y = y;
+}
+Vector.prototype.plus = function(other) {
+  return new Vector(this.x + other.x, this.y + other.y);
+};
+Vector.prototype.times = function(factor) {
+  return new Vector(this.x * factor, this.y * factor)
+};
+
+var actorChars = {
+  '@': Player,
+  'o': Coin,
+  '=': Lava, "|": Lava, 'v': Lava
+};
+
+function player(pos) {
+  this.pos = pos.plus(new Vector(0,-0.5));
+  this.size = new Vector(0.8, 1.5);
+  this.speed = new Vector(0, 0);
+}
+player.prototype.type = 'player';
+
+//Lava function
+
+function Lava(pos, ch) {
+  this.pos = pos;
+  this.size = new Vector(1, 1);
+  if (ch == '=') {
+    this.speed = new Vector(2, 0);
+  } else if (ch == '|') {
+    this.speed = new Vector(0, 2);
+  }else if (ch == 'v') {
+    this.speed = new Vector(0, 3);
+    this.repeatPos = pos;
+  }
+}
+Lava.prototype.type = "lava";
+
+//coin function code
+function coin(pos) {
+  this.basePos = this.pos = pos.plus(new Vector(0.2, 0.1));
+  this.size = new Vector(0.6, 0.6);
+  this.wobble = Math.random() * Math.PI * 2;
+}
+coin.prototype.type = 'coin';
+
+var simpleLevel = new Level(simpleLevlPlan);
+console.log(simpleLevel.width, "by", simpleLevel.height);
+
+/*Helper function
+helper function provides a short way to create an element and give it a class:
+*/
+
+function elt(name. className) {
+  var elt = document.createElement(name)
+  if (className) elt.className = className;
+  return elt;
+}
+
+/*A display is created by giving it a parent element to which it should append
+itself and a level object.
+*/
+
+
+function DOMDisplay(parent, level) {
+  this.wrap = parent.appendChild(elt('div', 'game'));
+  this.level = level;
+
+  /*drawFrame tracks the element that holds the actors so that they can be easily
+  removed and replaced*/
+
+  this.wrap.appendChild(this.drawBackground());
+  this.actorLayer = null;
+  this.drawFrame();
+}
+
+/* The scale variable gives the number of pixels that a single unit takes
+ up on the screen*/
+
+ var scale = 20;
+
+DOMDisplay.prototype.drawBackground = function() {
+  var table = elt('table', 'background');
+  table.style.width = this.level.width * scale + 'px';
+  this.level.grid.forEach(function(row) {
+    var rowElt = table.appendChild(elt('tr'));
+    rowElt.style.height = scale + 'px';
+    row.forEach(function(type) {
+      rowElt.appendChild(elt('td',type));
+    });
+  });
+  return table;
+};
