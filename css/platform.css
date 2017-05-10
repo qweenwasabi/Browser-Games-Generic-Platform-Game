@@ -23,7 +23,7 @@ the grid are used as class names for the table cell (<td>) elements.*/
 
 .coin {background: rgb(241, 229, 89);}
 
-.player {background: rgb(64, 64, 64); }
+.player {background: rgb(64,64,64); }
 
 .lost .player {
   background: rgb(160, 64, 64);

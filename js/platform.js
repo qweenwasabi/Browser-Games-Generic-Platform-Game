@@ -1,13 +1,3 @@
-// var GAME_LEVELS = [
-//   "                      ",
-//   "                      ",
-//   "  x              = x  ",
-//   "  x         o o    x  ",
-//   "  x @      xxxxx   x  ",
-//   "  xxxxx            x  ",
-//   "      x!!!!!!!!!!!!x  ",
-//   "      xxxxxxxxxxxxxx  ",
-//   "                      "
 
 var GAME_LEVELS = [
   ["                                                                                ",
@@ -147,10 +137,6 @@ var GAME_LEVELS = [
    "                                                                                                              "]
 ];
 
-if (typeof module != "undefined" && module.exports)
-  module.exports = GAME_LEVELS
-
-// Levels and rendering
 
 function Level(plan) {
   this.width = plan[0].length;
@@ -184,25 +170,20 @@ Level.prototype.isFinished = function() {
   return this.status != null && this.finishDelay < 0;
 };
 
-//character/actors
-
 function Vector(x, y) {
-  this.x = x;
-  this.y = y;
+  this.x = x; this.y = y;
 }
 Vector.prototype.plus = function(other) {
   return new Vector(this.x + other.x, this.y + other.y);
 };
 Vector.prototype.times = function(factor) {
-  return new Vector(this.x * factor, this.y * factor)
+  return new Vector(this.x * factor, this.y * factor);
 };
 
 var actorChars = {
   "@": Player,
   "o": Coin,
-  "=": Lava,
-  "|": Lava,
-  "v": Lava
+  "=": Lava, "|": Lava, "v": Lava
 };
 
 function Player(pos) {
@@ -210,89 +191,70 @@ function Player(pos) {
   this.size = new Vector(0.8, 1.5);
   this.speed = new Vector(0, 0);
 }
-Player.prototype.type = 'player';
-
-//Lava function
+Player.prototype.type = "player";
 
 function Lava(pos, ch) {
   this.pos = pos;
   this.size = new Vector(1, 1);
-  if (ch == '=') {
+  if (ch == "=") {
     this.speed = new Vector(2, 0);
-  } else if (ch == '|') {
+  } else if (ch == "|") {
     this.speed = new Vector(0, 2);
-  } else if (ch == 'v') {
+  } else if (ch == "v") {
     this.speed = new Vector(0, 3);
     this.repeatPos = pos;
   }
 }
 Lava.prototype.type = "lava";
 
-//coin function code
 function Coin(pos) {
   this.basePos = this.pos = pos.plus(new Vector(0.2, 0.1));
   this.size = new Vector(0.6, 0.6);
   this.wobble = Math.random() * Math.PI * 2;
 }
-Coin.prototype.type = 'coin';
+Coin.prototype.type = "coin";
 
-var simpleLevel = new Level(GAME_LEVELS);
-console.log(simpleLevel.width, "by", simpleLevel.height);
-
-/*Helper function
-helper function provides a short way to create an element and give it a class:
-*/
+var simpleLevel = new Level(simpleLevelPlan);
 
 function elt(name, className) {
-  var elt = document.createElement(name)
+  var elt = document.createElement(name);
   if (className) elt.className = className;
   return elt;
 }
 
-/*A display is created by giving it a parent element to which it should append
-itself and a level object.
-*/
-
-
 function DOMDisplay(parent, level) {
-  this.wrap = parent.appendChild(elt('div', 'game'));
+  this.wrap = parent.appendChild(elt("div", "game"));
   this.level = level;
-
-  /*drawFrame tracks the element that holds the actors so that they can be easily
-  removed and replaced*/
 
   this.wrap.appendChild(this.drawBackground());
   this.actorLayer = null;
   this.drawFrame();
 }
 
-/* The scale variable gives the number of pixels that a single unit takes
- up on the screen*/
-
 var scale = 20;
 
 DOMDisplay.prototype.drawBackground = function() {
-  var table = elt('table', 'background');
-  table.style.width = this.level.width * scale + 'px';
+  var table = elt("table", "background");
+  table.style.width = this.level.width * scale + "px";
   this.level.grid.forEach(function(row) {
-    var rowElt = table.appendChild(elt('tr'));
-    rowElt.style.height = scale + 'px';
+    var rowElt = table.appendChild(elt("tr"));
+    rowElt.style.height = scale + "px";
     row.forEach(function(type) {
-      rowElt.appendChild(elt('td', type));
+      rowElt.appendChild(elt("td", type));
     });
   });
   return table;
 };
 
 DOMDisplay.prototype.drawActors = function() {
-  var wrap = elt('div');
+  var wrap = elt("div");
   this.level.actors.forEach(function(actor) {
-    var rect = wrap.appendChild(elt('div',
-      'actor' + actor.type));
-    rect.style.width = actor.size.x * scale + 'px';
-    rect.style.height = actor.size.y * scale + 'px';
-    rect.style.left = actor.pos.x * scale + 'px';
-    rect.style.top = actor.pos.y * scale + 'px';
+    var rect = wrap.appendChild(elt("div",
+                                    "actor " + actor.type));
+    rect.style.width = actor.size.x * scale + "px";
+    rect.style.height = actor.size.y * scale + "px";
+    rect.style.left = actor.pos.x * scale + "px";
+    rect.style.top = actor.pos.y * scale + "px";
   });
   return wrap;
 };
@@ -301,25 +263,22 @@ DOMDisplay.prototype.drawFrame = function() {
   if (this.actorLayer)
     this.wrap.removeChild(this.actorLayer);
   this.actorLayer = this.wrap.appendChild(this.drawActors());
-  this.wrap.className = 'game' + (this.level.status || "");
+  this.wrap.className = "game " + (this.level.status || "");
   this.scrollPlayerIntoView();
 };
 
-//player positioning "scrollleft" and scrolltop
-
 DOMDisplay.prototype.scrollPlayerIntoView = function() {
   var width = this.wrap.clientWidth;
-  var height = this.wrap.clientWidth;
+  var height = this.wrap.clientHeight;
   var margin = width / 3;
 
-
-  //The viewport
-  var left = this.wrap.scrollLeft,right = left + width;
-  var top = this.wrap.scrollTop,bottom = top + height;
+  // The viewport
+  var left = this.wrap.scrollLeft, right = left + width;
+  var top = this.wrap.scrollTop, bottom = top + height;
 
   var player = this.level.player;
   var center = player.pos.plus(player.size.times(0.5))
-    .times(scale);
+                 .times(scale);
 
   if (center.x < left + margin)
     this.wrap.scrollLeft = center.x - margin;
@@ -335,9 +294,6 @@ DOMDisplay.prototype.clear = function() {
   this.wrap.parentNode.removeChild(this.wrap);
 };
 
-/* function tells whether a rectangle (specified by a position and
-a size) overlaps with any nonempty space on the background grid*/
-
 Level.prototype.obstacleAt = function(pos, size) {
   var xStart = Math.floor(pos.x);
   var xEnd = Math.ceil(pos.x + size.x);
@@ -345,13 +301,13 @@ Level.prototype.obstacleAt = function(pos, size) {
   var yEnd = Math.ceil(pos.y + size.y);
 
   if (xStart < 0 || xEnd > this.width || yStart < 0)
-    return 'wall';
+    return "wall";
   if (yEnd > this.height)
-    return 'lava';
+    return "lava";
   for (var y = yStart; y < yEnd; y++) {
     for (var x = xStart; x < xEnd; x++) {
       var fieldType = this.grid[y][x];
-      if(fieldType) return fieldType;
+      if (fieldType) return fieldType;
     }
   }
 };
@@ -368,9 +324,6 @@ Level.prototype.actorAt = function(actor) {
   }
 };
 
-//animate gives actors a chance to move
-//step argument is the time step in seconds
-//keys object contains information about the arrow keys the player has pressed.
 var maxStep = 0.05;
 
 Level.prototype.animate = function(step, keys) {
@@ -385,7 +338,6 @@ Level.prototype.animate = function(step, keys) {
     step -= thisStep;
   }
 };
-//Tracks if player won or lost the level
 
 Lava.prototype.act = function(step, level) {
   var newPos = this.pos.plus(this.speed.times(step));
@@ -397,10 +349,6 @@ Lava.prototype.act = function(step, level) {
     this.speed = this.speed.times(-1);
 };
 
-//coin wobble function
-/* The wobble property is updated to track time and then used as an argument
-to Math.sin to create a wave, which is used to compute a new position.*/
-
 var wobbleSpeed = 8, wobbleDist = 0.07;
 
 Coin.prototype.act = function(step) {
@@ -409,9 +357,7 @@ Coin.prototype.act = function(step) {
   this.pos = this.basePos.plus(new Vector(0, wobblePos));
 };
 
-//Player motion function
-
-var playerXspeed = 7;
+var playerXSpeed = 7;
 
 Player.prototype.moveX = function(step, level, keys) {
   this.speed.x = 0;
@@ -422,12 +368,9 @@ Player.prototype.moveX = function(step, level, keys) {
   var newPos = this.pos.plus(motion);
   var obstacle = level.obstacleAt(newPos, this.size);
   if (obstacle)
-  /*When a motion causes the player to hit something, the level’s playerTouched
-  method, which handles things like dying in lava and collecting coins, is
-  called*/
     level.playerTouched(obstacle);
   else
-    this.pis = newPos;
+    this.pos = newPos;
 };
 
 var gravity = 30;
@@ -457,59 +400,52 @@ Player.prototype.act = function(step, level, keys) {
   if (otherActor)
     level.playerTouched(otherActor.type, otherActor);
 
-  //Losing animation
-  if (level.status == 'lost') {
+  // Losing animation
+  if (level.status == "lost") {
     this.pos.y += step;
-    this.pos.y -= step;
+    this.size.y -= step;
   }
 };
 
-//shrink animations
 Level.prototype.playerTouched = function(type, actor) {
-  if (type == 'lava' && this.status == null) {
-    this.status = 'lost';
+  if (type == "lava" && this.status == null) {
+    this.status = "lost";
     this.finishDelay = 1;
-  } else if (type == 'coin') {
+  } else if (type == "coin") {
     this.actors = this.actors.filter(function(other) {
       return other != actor;
     });
     if (!this.actors.some(function(actor) {
-      return actor.type == 'coin'
+      return actor.type == "coin";
     })) {
-      this.status = 'won';
+      this.status = "won";
       this.finishDelay = 1;
     }
   }
 };
-
-//Tracks the current position
 
 var arrowCodes = {37: "left", 38: "up", 39: "right"};
 
 function trackKeys(codes) {
   var pressed = Object.create(null);
   function handler(event) {
-    if (codes.hasOwnProperty(event.keycode)) {
-      var down = event.type == 'keydown';
+    if (codes.hasOwnProperty(event.keyCode)) {
+      var down = event.type == "keydown";
       pressed[codes[event.keyCode]] = down;
       event.preventDefault();
     }
   }
-  //true('keydown') false('keyup')
-  addEventListener('keydown', handler);
-  addEventListener('keyup', handler);
+  addEventListener("keydown", handler);
+  addEventListener("keyup", handler);
   return pressed;
 }
-
-/*helper function waraps runAnimation to accept different arguments and
-draws a single frame. When false is returned the game stops. */
 
 function runAnimation(frameFunc) {
   var lastTime = null;
   function frame(time) {
     var stop = false;
     if (lastTime != null) {
-      var timeStep = Math.min(time - lastTime, 100)/ 1000;
+      var timeStep = Math.min(time - lastTime, 100) / 1000;
       stop = frameFunc(timeStep) === false;
     }
     lastTime = time;
@@ -518,8 +454,6 @@ function runAnimation(frameFunc) {
   }
   requestAnimationFrame(frame);
 }
-
-//runLevel displays level and clear level after the game is won or lost
 
 var arrows = trackKeys(arrowCodes);
 
@@ -531,13 +465,11 @@ function runLevel(level, Display, andThen) {
     if (level.isFinished()) {
       display.clear();
       if (andThen)
-      andThen(level.status)
+        andThen(level.status);
       return false;
     }
   });
 }
-
-//Moves player to the next level
 
 function runGame(plans, Display) {
   function startLevel(n, lives) {
